@@ -2,12 +2,14 @@ package URTorrent;
 import java.net.*;
 import java.io.*;
 
-
+/**
+ * Main Functional Class
+ * Contains all Peer actions here
+ * 
+ * @author Fangzhou_Liu
+ *
+ */
 public class URPeer {
-	
-	public static void main(String [] args) {
-		
-	}
 	
 	/**
 	 * Run the URPeer
