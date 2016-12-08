@@ -1,10 +1,9 @@
 package URTorrent;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Formatter;
-import java.util.Scanner;
+import java.io.*;
+import java.security.*;
+import java.util.*;
+import java.text.*;
 
 /**
  * Main running program
@@ -13,61 +12,50 @@ import java.util.Scanner;
  *
  */
 public class URTorrent {
-//	public static void main (String [] args) {
-//		System.out.println("-------------------------------------");
-//		System.out.println("Metainfo File Name: " + args[0]);
-//		System.out.println("Port Number: " + args[1]);
-//		System.out.println("-------------------------------------");
-//		System.out.println("\nURTorrent Launching ..... \n");
-//		launch();
-//	}
+	/**
+	 * All URTorrent Peer Command Line command
+	 */
+	public static final String METAINFO = "metainfo";
+	public static final String ANNOUNCE = "announce";
+	public static final String TRACKERINFO = "trackerinfo";
+	public static final String SHOW = "show";
+	public static final String STATUS = "status";
+	public static final String HELP = "help";
+
+	
+	
+	public static void main (String [] args) {
+		System.out.println("-------------------------------------");
+		System.out.println("Metainfo File Name: " + args[0]);
+		System.out.println("Port Number: " + args[1]);
+		System.out.println("Time: " + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z").format(new Date()));
+		System.out.println("\nDeveloper: Fangzhou Liu");
+		System.out.println("           Hao Zhou");
+		System.out.println("-------------------------------------");
+		System.out.println("\nURTorrent Launching ..... \n");
+		launch(args[0], args[1]);
+	}
 	
 	/**
 	 * Start the URTorrent Client
 	 * Take the user input as command, do operations according to the command
 	 */
-	public static void launch() {
+	public static void launch(String metafile, String port) {
 		
 		while(true) {
 			Scanner scan= new Scanner(System.in);
 			System.out.print("<urtorrent>");
 			//Get the input command
 			String text= scan.nextLine();
-			System.out.println(text);
+			switch(text) {
+			case METAINFO:
+				new URPeer().showMetaInfo(metafile, port);
+				break;
+			default:
+				System.out.println("No such command for Peer");
+				break;
+			}
 		}
 		
-	}
-	
-	private static String encryptPassword(String password)
-	{
-	    String sha1 = "";
-	    try
-	    {
-	        MessageDigest crypt = MessageDigest.getInstance("SHA-1");
-	        crypt.reset();
-	        crypt.update(password.getBytes("UTF-8"));
-	        System.out.println(password.getBytes("UTF-8"));
-	        System.out.println(crypt.digest());
-	        sha1 = byteToHex(crypt.digest());
-	    }
-	    catch(NoSuchAlgorithmException e)
-	    {
-	        e.printStackTrace();
-	    }
-	    catch(UnsupportedEncodingException e)
-	    {
-	        e.printStackTrace();
-	    }
-	    return sha1;
-	}
-
-	private static String byteToHex(final byte[] hash) {
-	    Formatter formatter = new Formatter();
-	    for (byte b : hash) {
-	        formatter.format("%02x", b);
-	    }
-	    String result = formatter.toString();
-	    formatter.close();
-	    return result;
 	}
 }

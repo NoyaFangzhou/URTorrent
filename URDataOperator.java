@@ -1,6 +1,7 @@
 package URTorrent;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.security.*;
 /**
  * Data operator
  * Used to Encode/Decode the data to be transmitted or received
@@ -33,10 +34,32 @@ public class URDataOperator {
 	 * Do the SHA1 Encoding
 	 * @param plaintext: the plain text message to be encoded
 	 * @return the SHA1 Encoded message for the text
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static String SEncode(String plaintext) {
-		String code = "";
-		return code;
+	public static String SEncode(String plaintext) throws NoSuchAlgorithmException {
+		if (plaintext == null) {
+			return null;
+		}
+        MessageDigest mDigest = MessageDigest.getInstance(Macro.SHA1);
+        byte[] result = mDigest.digest(plaintext.getBytes());
+        return toHex(result);
+	}
+	
+	/**
+	 * Do the SHA1 Encoding
+	 * @param bytes: the plain text message, in byte format, to be encoded
+	 * @return the SHA1 Encoded message for the text
+	 * @throws NoSuchAlgorithmException 
+	 */
+	public static String SEncodeBytes(byte[] bytes) throws NoSuchAlgorithmException {
+		if (bytes.length == 0) {
+			return null;
+		}
+        MessageDigest mDigest = MessageDigest.getInstance(Macro.SHA1);
+        byte[] result = mDigest.digest(bytes);
+//        System.out.println("result.length = " +result.length);
+        
+        return toHex(result);
 	}	
 	
 	/**
@@ -73,5 +96,35 @@ public class URDataOperator {
 			e.printStackTrace();
 		}
 		return text;
+	}
+	
+	/**
+	 * Helper methods, transfer all byte in the number/letter
+	 * @param sha1
+	 * @return
+	 */
+	public static String toHex(byte[] sha1) {
+		StringBuffer code = new StringBuffer();
+        for (int i = 0; i < sha1.length; i++) {
+            code.append(Integer.toString((sha1[i] & 0xff) + 0x100, 16).substring(1));
+        } 
+        return code.toString();  
+	}
+	
+	/**
+	 * Retrieve each 20 byte SHA1 for each piece from the concatenate SHA1 
+	 * with the key {pieces}
+	 * @param start: the start point of the SHA1
+	 * @param hash: the concatenated SHA1 for all pieces
+	 * @return the 20 byte SHA1 for specific piece
+	 */
+	public static byte[] getPieceSHA1(int start, byte [] hash) {
+		byte[] piece_sha1 = new byte[Macro.SHA1_LENGTH];
+		
+		for(int i = 0; i<Macro.SHA1_LENGTH; i++) {
+			piece_sha1[i] = hash[i+start];
+		}
+		
+		return piece_sha1;
 	}
 }

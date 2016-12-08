@@ -1,6 +1,8 @@
 package URTorrent;
 import java.net.*;
+import java.util.*;
 import java.io.*;
+import URTorrent.URBencode.*;
 
 /**
  * Main Functional Class
@@ -15,6 +17,7 @@ public class URPeer {
 	 * Run the URPeer
 	 */
 	private void run(String command) {
+		
 		
 	}
 	
@@ -33,12 +36,30 @@ public class URPeer {
         //Get the input stream for Socket
         //Receive data from tracker
         BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream())); 
-        
-        
-        
-        
-        
-        
+		
+	}
+	
+	/**
+	 * operate the urtorrent <metainfo> command
+	 * show the information about the metainfo file
+	 * @param fileName: the .torrent file name
+	 * @param port: the port number of the client
+	 */
+	public void showMetaInfo(String fileName, String port) {
+		try {
+			InputStream file_in = new FileInputStream(fileName);
+			//parse the metainfo
+			URFileOperator.MetaInfoFileParser(fileName, port, URPeerIDGenerator.getPeerID());
+			
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 	}
 	
