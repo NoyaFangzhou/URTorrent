@@ -1,4 +1,7 @@
 package URTorrent;
+
+import java.security.NoSuchAlgorithmException;
+
 /**
  * Generate the ID for Peers to do Peer communication
  * Runs once when peer begin to work
@@ -6,14 +9,21 @@ package URTorrent;
  *
  */
 public class URPeerIDGenerator {
-	private volatile static int id = 0;
 	/**
 	 * Generate the ID for each peers
 	 * This ID is identical for each peer.
 	 * @return The String format peer id for the Peer that call this method
 	 */
-	public static String getPeerID() {
-		return "CSC457-HFZ-"+(id++);
+	public static String getPeerID(String port) {
+		try {
+			String id = URDataOperator.SEncode("CSC457-HFZ-"+port);
+			System.out.println("Peer ID for port:"+port+" is "+ id);
+			return id;
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

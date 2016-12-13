@@ -26,31 +26,31 @@ import java.util.Map.Entry;
 
 public class BencodeMap extends HashMap<BencodeString, BencodeObject> implements BencodeObject { 
 
-public BencodeMap() { 
-super(); 
-} 
+	public BencodeMap() { 
+		super(); 
+	} 
+	
+	public void write(OutputStream out) throws IOException { 
+		out.write('d'); 
+		for (Entry<BencodeString, BencodeObject> e : this.entrySet()) { 
+			e.getKey().write(out); 
+			e.getValue().write(out); 
+		} 
+		out.write('e'); 
+	} 
 
-public void write(OutputStream out) throws IOException { 
-out.write('d'); 
-for (Entry<BencodeString, BencodeObject> e : this.entrySet()) { 
-e.getKey().write(out); 
-e.getValue().write(out); 
-} 
-out.write('e'); 
-} 
-
-@Override 
-public synchronized String toString() { 
-StringBuffer result = new StringBuffer(); 
-boolean first = true; 
-
-result.append('('); 
-for (Entry<BencodeString, BencodeObject> e : this.entrySet()) { 
-if (!first) result.append(", "); 
-result.append(e.getKey()+":"+e.getValue()); 
-first = false; 
-} 
-result.append(')'); 
-return super.toString(); 
-} 
+	@Override 
+	public synchronized String toString() { 
+		StringBuffer result = new StringBuffer(); 
+		boolean first = true; 
+		
+		result.append('('); 
+		for (Entry<BencodeString, BencodeObject> e : this.entrySet()) { 
+			if (!first) result.append(", "); 
+			result.append(e.getKey()+":"+e.getValue()); 
+			first = false; 
+		} 
+		result.append(')'); 
+		return super.toString(); 
+	} 
 }

@@ -49,7 +49,7 @@ public class URTorrent {
 			String text= scan.nextLine();
 			switch(text) {
 			case METAINFO:
-				new URPeer().showMetaInfo(metafile, port);
+				new URPeer(port, metafile).MetaInfoFileParser(metafile);
 				break;
 			default:
 				System.out.println("No such command for Peer");

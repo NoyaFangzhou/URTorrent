@@ -1,8 +1,10 @@
 package URTorrent;
 import java.net.*;
+import java.security.*;
 import java.util.*;
 import java.io.*;
 import URTorrent.URBencode.*;
+import URTorrent.URMessage.*;
 
 /**
  * Main Functional Class
@@ -13,6 +15,18 @@ import URTorrent.URBencode.*;
  */
 public class URPeer {
 	
+	private String id;
+	
+	private String port;
+	
+	URMetaInfo metainfo;
+	
+	public URPeer(String port, String fileName) {
+		this.id = URPeerIDGenerator.getPeerID(port);
+		this.port = port;
+		this.metainfo = new URMetaInfo(fileName);
+	}
+	
 	/**
 	 * Run the URPeer
 	 */
@@ -22,45 +36,36 @@ public class URPeer {
 	}
 	
 	/**
-	 * Build the TCP connection with the tracker
-	 */
-	private void TCPConnect(String url, int port) throws IOException {
-		
-		Socket client_socket = new Socket(url, port);  
-	
-        //获取Socket的输出流，用来发送数据到服务端    
-		//Get the output stream for Socket
-		//Send data to tracker
-        PrintStream out = new PrintStream(client_socket.getOutputStream());  
-        //获取Socket的输入流，用来接收从服务端发送过来的数据
-        //Get the input stream for Socket
-        //Receive data from tracker
-        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream())); 
-		
-	}
-	
-	/**
 	 * operate the urtorrent <metainfo> command
 	 * show the information about the metainfo file
-	 * @param fileName: the .torrent file name
-	 * @param port: the port number of the client
+	 * 
+	 * Parse the information hide behind the metainfo file
+	 * show all key-value pairs
+	 * list all piece hash info 
+	 * @param fileName: the file name of the .torrent file
+	 * @param port: port number that the peer listen to
+	 * @param peerID: id of the current peer
 	 */
-	public void showMetaInfo(String fileName, String port) {
-		try {
-			InputStream file_in = new FileInputStream(fileName);
-			//parse the metainfo
-			URFileOperator.MetaInfoFileParser(fileName, port, URPeerIDGenerator.getPeerID());
-			
-			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void MetaInfoFileParser(String fileName) {
+		//display the content
+		System.out.println("-------------------------------------");
+		System.out.println("- IP/port: "+Macro.LOCALHOST+"/"+port);
+		System.out.println("- ID: "+id);
+		System.out.println("- metainfo file: "+fileName);
+		System.out.println("- announce: "+metainfo.getAnnounce());
+		for(String key : metainfo.getInfo().keySet()) {
+			System.out.println("- "+key + ": " + metainfo.getInfo().get(key));
 		}
+		System.out.println("- piece's hashes: ");
+		for(int i = 0; i<metainfo.getPieces().size(); i++) {
+			System.out.println(i + " " + metainfo.getPieces().get(i));
+		}	
+	}
+	
+	public void handshake(String info_hash) {
+		HandShakeMsg handshake = new HandShakeMsg(info_hash, id);
 		
-		
+		System.out.println(handshake.toString());
 	}
 	
 	
