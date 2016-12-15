@@ -3,6 +3,8 @@ package URTorrent;
 import java.io.*;
 import java.net.*;
 
+import URTorrent.URMessage.*;
+
 /**
  * TCPConnection Class
  * Used to do the TCP connections for Both Cliend/Server
@@ -28,60 +30,185 @@ public class URTCPConnector {
 	}
 	
 	/**
-	 * Build the TCP connection with the tracker
-	 * @param url: ip_addr of the server
-	 * @param port: port of the server
+	 * Send Handshake message to other peers.
+	 * @param url: url of the peer
+	 * @param port: port # of the peer
+	 * @param info_hash: info hash of its own metainfo file
+	 * @param id: 20byte id #
 	 * @throws IOException
 	 */
-	public void TCPClientConnect(String url, int port) throws IOException {
+	public static void SendHandshake(String url, int port, byte[] handshake) throws IOException {
 		
-		Socket client_socket = new Socket(url, port);  
-	
+		Socket hsksocket = new Socket(url, port);  	
+		System.out.println(handshake+"\n");
         //获取Socket的输出流，用来发送数据到服务端    
 		//Get the output stream for Socket
-		//Send data to tracker
-        PrintStream out = new PrintStream(client_socket.getOutputStream());  
-        out.println("Hello World");
+		//Send handshake to peer
+		DataOutputStream out_stream = new DataOutputStream(hsksocket.getOutputStream()); 
+		out_stream.write(handshake);
         
         //获取Socket的输入流，用来接收从服务端发送过来的数据
         //Get the input stream for Socket
-        //Receive data from tracker
-        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+        //Receive response from peer
+//        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+//        
+//        System.out.println(buf.readLine());  
         
-        System.out.println("Received from Server: " + buf.readLine());  
+//        buf.close();
+        out_stream.close();
+        hsksocket.close();
+	}
+	
+	
+	/**
+	 * Send BitField message to other peers.
+	 * @param url: url of the peer
+	 * @param port: port # of the peer
+	 * @param bitfield: bitfield message
+	 * @throws IOException
+	 */
+	public static void SendBitField(String url, int port, byte[] bitfield) throws IOException {
+		
+		Socket btfsocket = new Socket(url, port);  	
+		System.out.println(bitfield+"\n");
+        //获取Socket的输出流，用来发送数据到服务端    
+		//Get the output stream for Socket
+		//Send bitfield to peer
+		
+		DataOutputStream out_stream = new DataOutputStream(btfsocket.getOutputStream()); 
+		out_stream.write(bitfield);
         
-        buf.close();
-        out.close();
-        client_socket.close();
+        //获取Socket的输入流，用来接收从服务端发送过来的数据
+        //Get the input stream for Socket
+        //Receive response from peer
+//        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+//        
+//        System.out.println(buf.readLine());  
+//        
+//        buf.close();
+        out_stream.close();
+        btfsocket.close();
 		
 	}
 	
 	/**
-	 * Build the TCP connection with the client
-	 * @param port
+	 * Send UnChoke message to selected peers.
+	 * @param url: url of the peer
+	 * @param port: port # of the peer
+	 * @param unchoked: unchoked message
 	 * @throws IOException
 	 */
-	public void TCPServerConnect(int port) throws IOException {
-		System.out.println("Server Open！....\n");
-		ServerSocket serv_sock = new ServerSocket(port);
-		Socket client_sock = null;
-		boolean run_state = true;
-		while(run_state) {
-			client_sock = serv_sock.accept();  
-			
-            System.out.println("Client connected！....\n" + client_sock);
-			//获取Socket的输出流，用来向客户端发送数据  
-            PrintStream out = new PrintStream(client_sock.getOutputStream());  
-            //获取Socket的输入流，用来接收从客户端发送过来的数据  
-            BufferedReader buf = new BufferedReader(new InputStreamReader(client_sock.getInputStream()));
-            
-            System.out.println("Received from Client: "+buf.readLine());
-            out.println("Hello World from Server!");
-            client_sock.close();
-
-            
-		}
+	public static void SendUnChoked(String url, int port, byte[] unchoked) throws IOException {
 		
+		Socket btfsocket = new Socket(url, port);  	
+		System.out.println(unchoked+"\n");
+        //获取Socket的输出流，用来发送数据到服务端    
+		//Get the output stream for Socket
+		//Send bitfield to peer
+		
+		DataOutputStream out_stream = new DataOutputStream(btfsocket.getOutputStream()); 
+		out_stream.write(unchoked);
+        
+        //获取Socket的输入流，用来接收从服务端发送过来的数据
+        //Get the input stream for Socket
+        //Receive response from peer
+//        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+//        
+//        System.out.println(buf.readLine());  
+//        
+//        buf.close();
+        out_stream.close();
+        btfsocket.close();   
+	}
+	
+	
+	public static void SendInterest(String url, int port, byte[] interest) throws IOException {
+		Socket btfsocket = new Socket(url, port);  	
+		System.out.println(interest+"\n");
+        //获取Socket的输出流，用来发送数据到服务端    
+		//Get the output stream for Socket
+		//Send bitfield to peer
+		
+		DataOutputStream out_stream = new DataOutputStream(btfsocket.getOutputStream()); 
+		out_stream.write(interest);
+        
+        //获取Socket的输入流，用来接收从服务端发送过来的数据
+        //Get the input stream for Socket
+        //Receive response from peer
+//        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+//        
+//        System.out.println(buf.readLine());  
+//        
+//        buf.close();
+        out_stream.close();
+        btfsocket.close(); 
+	}
+	
+	
+	public static void SendRequest(String url, int port, byte[] request) throws IOException {
+		Socket btfsocket = new Socket(url, port);  	
+		System.out.println(request+"\n");
+        //获取Socket的输出流，用来发送数据到服务端    
+		//Get the output stream for Socket
+		//Send bitfield to peer
+		
+		DataOutputStream out_stream = new DataOutputStream(btfsocket.getOutputStream()); 
+		out_stream.write(request);
+        
+        //获取Socket的输入流，用来接收从服务端发送过来的数据
+        //Get the input stream for Socket
+        //Receive response from peer
+//        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+//        
+//        System.out.println(buf.readLine());  
+//        
+//        buf.close();
+        out_stream.close();
+        btfsocket.close(); 
+	}
+	
+	public static void SendPieces(String url, int port, byte[] pieces) throws IOException {
+		Socket btfsocket = new Socket(url, port);  	
+		System.out.println(pieces+"\n");
+        //获取Socket的输出流，用来发送数据到服务端    
+		//Get the output stream for Socket
+		//Send bitfield to peer
+		
+		DataOutputStream out_stream = new DataOutputStream(btfsocket.getOutputStream()); 
+		out_stream.write(pieces);
+        
+        //获取Socket的输入流，用来接收从服务端发送过来的数据
+        //Get the input stream for Socket
+        //Receive response from peer
+//        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+//        
+//        System.out.println(buf.readLine());  
+//        
+//        buf.close();
+        out_stream.close();
+        btfsocket.close(); 
+	}
+	
+	public static void SendPieceData(String url, int port, byte[] data) throws IOException {
+		Socket btfsocket = new Socket(url, port);  	
+		System.out.println(data+"\n");
+        //获取Socket的输出流，用来发送数据到服务端    
+		//Get the output stream for Socket
+		//Send bitfield to peer
+		
+		DataOutputStream out_stream = new DataOutputStream(btfsocket.getOutputStream()); 
+		out_stream.write(data);
+        
+        //获取Socket的输入流，用来接收从服务端发送过来的数据
+        //Get the input stream for Socket
+        //Receive response from peer
+//        BufferedReader buf =  new BufferedReader(new InputStreamReader(client_socket.getInputStream()));
+//        
+//        System.out.println(buf.readLine());  
+//        
+//        buf.close();
+        out_stream.close();
+        btfsocket.close(); 
 	}
 
 }

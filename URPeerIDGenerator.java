@@ -16,8 +16,9 @@ public class URPeerIDGenerator {
 	 */
 	public static String getPeerID(String port) {
 		try {
-			String id = URDataOperator.SEncode("CSC457-HFZ-"+port);
+			String id = URDataOperator.SEncode(("CSC457-HFZ-"+port));
 			System.out.println("Peer ID for port:"+port+" is "+ id);
+			System.out.println("Peer ID lenght: "+ id.length());
 			return id;
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block

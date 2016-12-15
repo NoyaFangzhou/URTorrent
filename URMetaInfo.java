@@ -29,7 +29,7 @@ public class URMetaInfo {
 	
 	private String announce;
 	
-	private String info_hash;
+	private byte[] info_hash;
 	// info dict
 	private HashMap<String, String> info = new HashMap<String, String>();//key -> value
 	// array list of pieces

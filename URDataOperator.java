@@ -11,6 +11,10 @@ import java.security.*;
  */
 public class URDataOperator {
 	
+	
+	/** The Constant HEX_CHARS. */
+	public static final char[] HEX_CHARS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	
 	/**
 	 * Do the Bencode Encoding
 	 * @param plaintext: the plain text message to be encoded
@@ -42,7 +46,7 @@ public class URDataOperator {
 		}
         MessageDigest mDigest = MessageDigest.getInstance(Macro.SHA1);
         byte[] result = mDigest.digest(plaintext.getBytes());
-        return toHex(result);
+        return toHexString(result);
 	}
 	
 	/**
@@ -59,8 +63,29 @@ public class URDataOperator {
         byte[] result = mDigest.digest(bytes);
 //        System.out.println("result.length = " +result.length);
         
-        return toHex(result);
+        return toHexString(result);
 	}	
+	
+	public static byte[] SEncodeID(byte[] bytes) throws NoSuchAlgorithmException {
+		 MessageDigest mDigest = MessageDigest.getInstance(Macro.SHA1);
+	     byte[] result = mDigest.digest(bytes);        
+	     return result;
+	}
+	
+	/**
+	 * Do the SHA1 Encoding
+	 * @param plaintext: the info message to be encoded
+	 * @return the SHA1 Encoded message for the text
+	 * @throws NoSuchAlgorithmException 
+	 */
+	public static byte[] SEncodeInfohash(String info) throws NoSuchAlgorithmException {
+		if (info == null) {
+			return null;
+		}
+        MessageDigest mDigest = MessageDigest.getInstance(Macro.SHA1);
+        byte[] result = mDigest.digest(info.getBytes());
+        return result;
+	}
 	
 	/**
 	 * Do the URL Encoding
@@ -126,5 +151,33 @@ public class URDataOperator {
 		}
 		
 		return piece_sha1;
+	}
+	
+	/**
+	 * To hex string.
+	 * 
+	 * Converts a byte array to a hex string
+	 *
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	public static String toHexString(byte[] bytes) {
+		if (bytes == null) {
+			return null;
+		}
+		
+		if (bytes.length == 0) {
+			return "";
+		}
+
+		StringBuilder sb = new StringBuilder(bytes.length * 3);
+
+		for (byte b : bytes) {
+			byte hi = (byte) ((b >> 4) & 0x0f);
+			byte lo = (byte) (b & 0x0f);
+
+			sb.append('%').append(HEX_CHARS[hi]).append(HEX_CHARS[lo]);
+		}
+		return sb.toString();
 	}
 }
