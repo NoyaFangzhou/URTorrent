@@ -211,4 +211,45 @@ public class URTCPConnector {
         btfsocket.close(); 
 	}
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public TorrentInfo parseTorrentFile(File torrentFileName) {
+		try {
+			DataInputStream dataInputStream = new DataInputStream(new FileInputStream(torrentFileName));
+			long fSize = torrentFileName.length();
+
+			if (fSize > Integer.MAX_VALUE || fSize < Integer.MIN_VALUE) {
+				dataInputStream.close();
+				throw new IllegalArgumentException(fSize + " is too large a torrent filesize for this program to handle");
+			}
+
+			byte[] torrentData = new byte[(int)fSize];
+			dataInputStream.readFully(torrentData);
+			TorrentInfo torrentInfo = new TorrentInfo(torrentData);
+
+			dataInputStream.close();			
+			return torrentInfo;
+		} catch (FileNotFoundException e) {
+			System.out.println("Error: File not found");
+			return null;
+		} catch (IOException e) {
+			System.out.println("Error: Unable to interface with file");
+			return null;
+		} catch (IllegalArgumentException e) {
+			System.out.println("Error: Illegal argument");
+			return null;
+		} catch (BencodingException e) {
+			System.out.println("Error: Invalid torrent file specified");
+			return null;
+		}
+	}
 }

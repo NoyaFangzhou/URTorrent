@@ -30,6 +30,23 @@ public class URMetaInfo {
 	private String announce;
 	
 	private byte[] info_hash;
+	
+	private int file_size;
+	/**
+	 * @return the file_size
+	 */
+	public int getFile_size() {
+		return file_size;
+	}
+
+	/**
+	 * @param file_size the file_size to set
+	 */
+	public void setFile_size(int file_size) {
+		this.file_size = file_size;
+	}
+
+
 	// info dict
 	private HashMap<String, String> info = new HashMap<String, String>();//key -> value
 	// array list of pieces
@@ -73,6 +90,10 @@ public class URMetaInfo {
 			}
 			//go over all key-val pairs for info sub-dict
 			for(BencodeString key : info.keySet()) {
+				if(key.toString().equals(URMetaInfo.LENGTH)) {
+					BencodeInt filesize = (BencodeInt)info.get(key);
+					this.file_size = filesize.getInt();
+				}
 				if(!key.toString().equals(URMetaInfo.PIECES)) {
 					this.info.put(key.toString(), info.get(key).toString());
 				}

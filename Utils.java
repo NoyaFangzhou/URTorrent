@@ -1,11 +1,9 @@
+package URTorrent;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Random;
-
-import GivenTools.ToolKit;
-import GivenTools.TorrentInfo;
 
 /**
  * The Class Utils handles miscellaneous functions that help us
@@ -129,82 +127,82 @@ public class Utils extends ToolKit {
 		return bitfield;
 	}
 	
-	/**
-	 * Check pieces.
-	 * 
-	 * Check the pieces of the file we have on disk so that we can increment
-	 * downloaded stats and send appropriate bitfield
-	 *
-	 * @return the boolean[]
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	public static boolean[] checkPieces(TorrentInfo torrentInfo, File outputFile) throws IOException {
-
-		int numPieces = torrentInfo.piece_hashes.length;
-		int pieceLength = torrentInfo.piece_length;
-		int fileLength = torrentInfo.file_length;
-		ByteBuffer[] pieceHashes = torrentInfo.piece_hashes;
-		int lastPieceLength = fileLength % pieceLength == 0 ? pieceLength : fileLength % pieceLength;
-
-		byte[] piece = null;
-		boolean[] verifiedPieces = new boolean[numPieces];
-
-		for (int i = 0; i < numPieces; i++) {
-			if (i != numPieces - 1) {
-				piece = new byte[pieceLength];
-				piece = readFile(i, 0, pieceLength, torrentInfo, outputFile);
-			} else {
-				piece = new byte[lastPieceLength];
-				piece = readFile(i, 0, lastPieceLength, torrentInfo, outputFile);
-			}
-			
-			
-			
-			if (Manager.verifySHA1(piece, pieceHashes[i], i)) {
-				verifiedPieces[i] = true;
-				RUBTClient.log("Verified piece " + i);
-			}
-		}
-		
-		for(int i = 0; i < verifiedPieces.length; i++){
-			if(verifiedPieces[i] != false){
-				
-				if(torrentInfo.file_length % torrentInfo.piece_length != 0 && i == torrentInfo.piece_hashes.length -1){
-					RUBTClient.addProgress(torrentInfo.file_length % torrentInfo.piece_length);
-					RUBTClient.addAmountDownloaded(torrentInfo.file_length % torrentInfo.piece_length);
-				}
-				else {
-					RUBTClient.addProgress(torrentInfo.piece_length);
-					RUBTClient.addAmountDownloaded(torrentInfo.piece_length);
-				}
-			}
-			
-		}
-		
-		return verifiedPieces;
-	}
-	
-	/**
-	 * Read file.
-	 * 
-	 * Reads a piece from file on the disk in instances
-	 * where we are uploading a piece or if we are 
-	 * checking the pieces of the file we already have
-	 *
-	 * @param index the index
-	 * @param offset the offset
-	 * @param length the length
-	 * @return the byte[]
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	public static byte[] readFile(int index, int offset, int length, TorrentInfo torrentInfo, File outputFile) throws IOException {
-		RandomAccessFile raf = new RandomAccessFile(outputFile, "r");
-		byte[] data = new byte[length];
-		
-		raf.seek(torrentInfo.piece_length * index + offset);
-		raf.read(data);
-		raf.close();
-		
-		return data;
-	}
+//	/**
+//	 * Check pieces.
+//	 * 
+//	 * Check the pieces of the file we have on disk so that we can increment
+//	 * downloaded stats and send appropriate bitfield
+//	 *
+//	 * @return the boolean[]
+//	 * @throws IOException Signals that an I/O exception has occurred.
+//	 */
+//	public static boolean[] checkPieces(TorrentInfo torrentInfo, File outputFile) throws IOException {
+//
+//		int numPieces = torrentInfo.piece_hashes.length;
+//		int pieceLength = torrentInfo.piece_length;
+//		int fileLength = torrentInfo.file_length;
+//		ByteBuffer[] pieceHashes = torrentInfo.piece_hashes;
+//		int lastPieceLength = fileLength % pieceLength == 0 ? pieceLength : fileLength % pieceLength;
+//
+//		byte[] piece = null;
+//		boolean[] verifiedPieces = new boolean[numPieces];
+//
+//		for (int i = 0; i < numPieces; i++) {
+//			if (i != numPieces - 1) {
+//				piece = new byte[pieceLength];
+//				piece = readFile(i, 0, pieceLength, torrentInfo, outputFile);
+//			} else {
+//				piece = new byte[lastPieceLength];
+//				piece = readFile(i, 0, lastPieceLength, torrentInfo, outputFile);
+//			}
+//			
+//			
+//			
+//			if (Manager.verifySHA1(piece, pieceHashes[i], i)) {
+//				verifiedPieces[i] = true;
+//				RUBTClient.log("Verified piece " + i);
+//			}
+//		}
+//		
+//		for(int i = 0; i < verifiedPieces.length; i++){
+//			if(verifiedPieces[i] != false){
+//				
+//				if(torrentInfo.file_length % torrentInfo.piece_length != 0 && i == torrentInfo.piece_hashes.length -1){
+//					RUBTClient.addProgress(torrentInfo.file_length % torrentInfo.piece_length);
+//					RUBTClient.addAmountDownloaded(torrentInfo.file_length % torrentInfo.piece_length);
+//				}
+//				else {
+//					RUBTClient.addProgress(torrentInfo.piece_length);
+//					RUBTClient.addAmountDownloaded(torrentInfo.piece_length);
+//				}
+//			}
+//			
+//		}
+//		
+//		return verifiedPieces;
+//	}
+//	
+//	/**
+//	 * Read file.
+//	 * 
+//	 * Reads a piece from file on the disk in instances
+//	 * where we are uploading a piece or if we are 
+//	 * checking the pieces of the file we already have
+//	 *
+//	 * @param index the index
+//	 * @param offset the offset
+//	 * @param length the length
+//	 * @return the byte[]
+//	 * @throws IOException Signals that an I/O exception has occurred.
+//	 */
+//	public static byte[] readFile(int index, int offset, int length, TorrentInfo torrentInfo, File outputFile) throws IOException {
+//		RandomAccessFile raf = new RandomAccessFile(outputFile, "r");
+//		byte[] data = new byte[length];
+//		
+//		raf.seek(torrentInfo.piece_length * index + offset);
+//		raf.read(data);
+//		raf.close();
+//		
+//		return data;
+//	}
 }

@@ -59,6 +59,7 @@ public class URReceiverThread extends Thread {
 							if(!remote_peer.ChokeFlag) {
 								remote_peer.InterestFlag = true;
 								peer.request(remote_ip, remote_port);
+								break;
 							}
 						}
 					}
@@ -81,6 +82,15 @@ public class URReceiverThread extends Thread {
 				if(messagecontent[4] == 2) {
 					System.out.println("--Interest message--\n");
 					peer.getStatus().PeerInterested = true;
+					for(URPeerInfo remote_peer: peer.getPeers()) {
+						if(remote_peer.ip.equals(remote_ip) && remote_peer.port == remote_port) {
+							if(remote_peer.ChokeFlag) {
+								remote_peer.ChokeFlag = false;
+								peer.unchoked(remote_ip, remote_port);
+								break;
+							}
+						}
+					}
 					continue;
 				}
 				if(messagecontent[4] == 3) {
@@ -90,6 +100,7 @@ public class URReceiverThread extends Thread {
 				}
 				if(messagecontent[4] == 4) {
 					System.out.println("--Have message--\n");
+					
 					TimeUnit.SECONDS.sleep(1);
 					continue;
 				}
@@ -101,7 +112,7 @@ public class URReceiverThread extends Thread {
 						if(remote_peer.ip.equals(remote_ip) && remote_peer.port == remote_port) {
 							if(remote_peer.MsgbitfieldFlag) {
 								//set this peers bitfield
-								remote_peer.bitfield = UtilTools.bitfieldToBoolArray(remote_bitfield, remote_bitfield.length);
+								remote_peer.bitfield = Utils.bitfieldToBoolArray(remote_bitfield, remote_bitfield.length);
 								if(peer.getRole() == Macro.SEEDER) {
 									peer.getStatus().AmChokingFlag = false;
 									peer.unchoked(remote_ip, remote_port);
@@ -124,12 +135,13 @@ public class URReceiverThread extends Thread {
 					}
 					TimeUnit.SECONDS.sleep(1);
 					
-					int select_peer_index = RandomSelect(peer.getPeers().size());
-					URPeerInfo selected_peer = peer.getPeers().get(select_peer_index);
+//					int select_peer_index = RandomSelect(peer.getPeers().size());
+//					URPeerInfo selected_peer = peer.getPeers().get(select_peer_index);
 					continue;
 				}
 				if(messagecontent[4] == 6) {
 					System.out.println("--Request message--\n");
+					
 					TimeUnit.SECONDS.sleep(1);
 					continue;
 				}

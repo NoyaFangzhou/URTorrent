@@ -3,6 +3,8 @@ import java.net.*;
 import java.security.*;
 import java.util.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+
 import URTorrent.URBencode.*;
 import URTorrent.URMessage.*;
 import URTorrent.URThread.*;
@@ -20,6 +22,8 @@ public class URPeer {
 	
 	private String torrent_file;
 	
+	private String ip;
+	
 	private String port;
 	
 	private int role;
@@ -36,6 +40,8 @@ public class URPeer {
 	
 	private PeerStatus status;
 	
+	private URAnnounce announce;
+	
 //	private ArrayList<PeerStatus> statusList;//stores the status for each remote peer
 	
 	//constructor
@@ -51,6 +57,7 @@ public class URPeer {
 		this.piecePrevalence = new int[this.metainfo.getPieces().size()];
 		//全0序列	
 		Arrays.fill(this.piecePrevalence, 0);
+		this.announce = new URAnnounce();
 	}
 	
 	
@@ -126,6 +133,8 @@ public class URPeer {
 		if(this.role == Macro.LEECHER) {
 			Arrays.fill(this.bitfield, false);	//all 0
 			status.bitfield = this.bitfield;
+			status.left = metainfo.getFile_size();
+			System.out.println("!!!!!!"+ metainfo.getFile_size());
 		}
 		else {
 			Arrays.fill(this.bitfield, true);	//all 1
@@ -217,7 +226,7 @@ public class URPeer {
 	 */
 	public void bitfield(String target_ip, int target_port) {
 		try {
-			byte[] bitfieldmsg = URMessageGenerator.generateBitField(UtilTools.boolToBitfieldArray(this.bitfield));
+			byte[] bitfieldmsg = URMessageGenerator.generateBitField(Utils.boolToBitfieldArray(this.bitfield));
 			URTCPConnector.SendBitField(target_ip, target_port, bitfieldmsg);
 		} catch (NumberFormatException | IOException e) {
 			// TODO Auto-generated catch block
@@ -268,53 +277,6 @@ public class URPeer {
 			e.printStackTrace();
 		}
 	}
-	public void trackerRequest() {
-		try {
-			String header = "GET /announce?info_hash="+metainfo.getInfo_hash()+"&";
-			String body = "";
-			if(role == Macro.SEEDER) {
-				body = "peer_id="+id+"&port="+port+"&uploaded=0&downloaded=0&left=0&compact=1&event=started";
-			}
-			else if(role == Macro.LEECHER) {
-				body = "uploaded=0&downloaded=0&left="+metainfo.getInfo().get(metainfo.LENGTH)+"&compact=1&event=started";
-			}
-			String tail = " HTTP/1.1\r\n\r\n";
-			
-			Socket request = new Socket(Macro.LOCALHOST, Macro.TRACKER_PORT);
-			System.out.println("Request Header:\n"+header+body+tail);
-			
-			PrintWriter out = new PrintWriter(request.getOutputStream());
-			BufferedReader buf = new BufferedReader(new InputStreamReader(request.getInputStream()));
-			out.print((header+body+tail));
-			//get the response
-			String response;
-			int line_num = 0;
-			while((response = buf.readLine())!=null) {
-				System.out.println(response+"\n");
-				if(line_num == 0) {
-					if(!URTCPConnector.TCPResponseCodeChecker(response)) {
-						System.out.println("Tracker Error, Peer closing ....!");
-						System.exit(0);
-					}
-				}
-				if(line_num == 2) {
-					//parse the return bencode
-				}
-			}
-			
-			
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 	
 	/**
 	 * Check whether the info_hash in the received handshake is current serving
@@ -335,8 +297,206 @@ public class URPeer {
 		return true;
 	}
 	
+	/**
+	 * Build the TCP connection with the tracker
+	 * @param url: ip_addr of the server
+	 * @param port: port of the server
+	 * @throws IOException
+	 * @throws BencodingException 
+	 */
+	public void trackerRequest() throws IOException {
+		String Info = "";
+		File torrentFile = new File(torrent_file);
+		TorrentInfo torrentInfo = null;
+		if(!torrentFile.exists()){
+			System.out.println("No such torrent file exists");
+			return;
+		}
+		
+		TorrentReader torrentReader = new TorrentReader();
+		
+		if((torrentInfo = torrentReader.parseTorrentFile(torrentFile)) == null){
+			System.out.println("Unable to parse torrent file; Exiting.");
+			return;
+		} else{
+			System.out.println("Torrent file parsed successfully");
+		}
+		
+//		System.out.println(torrentInfo.announce_url);
+		//+++++++++++++++++++  get URL  +++++++++++++++++++++++++
+		String urlinfo = createURL(torrentInfo, id.getBytes(), port+"", status.upload, status.download, status.left, "started");
+		//get tracker response, begin parser
+		String trackerResponse = sendGETRecieveResponse(urlinfo);
+		String preInfo = trackerResponse.substring(0, trackerResponse.indexOf("peers")-2)+"e";
+		String peers = trackerResponse.substring(trackerResponse.lastIndexOf(":")+1,trackerResponse.length());
+//		System.out.println(preInfo+"\n"+peers);
+//		System.out.println(peers);
+		byte[] pe = peers.getBytes();
+		System.out.println("size:"+(pe.length));
+		for(int i =0; i<pe.length-2; i = i + 6){
+//			System.out.print(pe[i + 0] + ".");
+//			System.out.print(pe[i + 1] + ".");
+//			System.out.print(pe[i + 2] + ".");
+//			System.out.print(pe[i + 3] + "\n");
+//			System.out.println((int)(pe[i + 4] << 8 | pe[i +5]));
+			//＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋
+			String remote_peer_ip = pe[i + 0] + "." + pe[i + 1] + "." + pe[i + 2] + "." + pe[i + 3];
+			int remote_peer_port = (int)(pe[i + 4] << 8 | pe[i +5]);
+			boolean isExist = false;
+			for(URPeerInfo exist_peer : this.peers) {
+				if(exist_peer.ip.equals(remote_peer_ip) && exist_peer.port == (remote_peer_port)) {
+					isExist = true;
+					break;
+				}
+			}
+			if(!isExist) {
+				URPeerInfo remote_peerInfo = new URPeerInfo(remote_peer_ip ,remote_peer_port);
+				this.peers.add(remote_peerInfo);
+			}
+			//＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋＋
+		}
+		
+		TrackerResponseParser(preInfo, this.announce);
+		
+	}
+	
+	private static String createURL(TorrentInfo torrentInfo, byte[] peerId, String port, int uploaded, int downloaded, int left, String event) throws MalformedURLException {
+		String newURL ="GET /announce";
+		newURL += "?info_hash=" + Utils.toHexString(torrentInfo.info_hash.array())
+				+ "&peer_id=" + Utils.toHexString(peerId) + "&port="
+				+ port + "&uploaded=" + uploaded + "&downloaded="
+				+ downloaded + "&left=" + left + "&compact=1&event="+event+" HTTP/1.1";
+		return newURL;
+	}
+	
+	private static String sendGETRecieveResponse(String url) {
+		try {
+			Socket socket = new Socket(Macro.LOCALHOST, Macro.TRACKER_PORT);
+			String header_line = "";
+			String payload = "";
+	        try {
+				OutputStream out = socket.getOutputStream();
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); 
+				url = url+"\r\n\r\n";
+//				System.out.println(url);
+				out.write(url.getBytes()); 
+				DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+				
+				String response_header = "";
+				int line = 0;
+	            while(true){    
+		           	response_header=in.readLine();
+		           	if(response_header==null) {
+		   	           	 break;
+		   	         }
+		           	if(line == 0) {
+		           		header_line = response_header;
+		           	}
+		           	if(line == 4) {
+		           		payload = response_header;
+		           	}
+		           	line ++;
+	            }                                    
+				out.close();
+				in.close();
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	        // Check whether the response header is 2XX
+//	        System.out.println(header_line);
+		    if(!URTCPConnector.TCPResponseCodeChecker(header_line)) {
+		    	System.out.println("ERROR!\nCannot contact to tracker successfully\nReason: "+payload);
+		    	System.exit(0);
+		    	return null;
+		    }
+		    else {
+//		    	System.out.println(payload);
+		    	return payload;
+		    }
+		} catch (IOException e) {
+			System.out.println("Error communicating with tracker");
+			return null;
+		}
+	}
 	
 	
+	private static void TrackerResponseParser(String resp, URAnnounce announce) {
+		InputStream input = new ByteArrayInputStream(resp.getBytes(StandardCharsets.UTF_8));
+		try {
+			BencodeMap map = (BencodeMap) Bencode.parseBencode(input);
+			//go over all key-val pairs for metainfo dict
+			for(BencodeString key : map.keySet()) {
+				if(key.equals(new BencodeString(URAnnounce.INTERVAL))) {
+					BencodeInt interval = (BencodeInt)map.get(key);
+					announce.setInterval(interval.getInt());
+				}
+				else if(key.equals(new BencodeString(URAnnounce.MIN_INTERVAL))) {
+					BencodeInt min_interval = (BencodeInt)map.get(key);
+					announce.setMin_interval(min_interval.getInt());
+				}
+				else if(key.equals(new BencodeString(URAnnounce.COMPLETE))) {
+					BencodeInt complete = (BencodeInt)map.get(key);
+					announce.setComplete(complete.getInt());
+				}
+				else if(key.equals(new BencodeString(URAnnounce.INCOMPLETE))) {
+					BencodeInt incomplete = (BencodeInt)map.get(key);
+//					System.out.println("incomplete: "+ incomplete.getInt());
+					announce.setIncomplete(incomplete.getInt());
+				}
+				else if(key.equals(new BencodeString(URAnnounce.DOWNLOADED))) {
+					BencodeInt download = (BencodeInt)map.get(key);
+					announce.setDownload(download.getInt());
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
+	
+	public void Print_Announce() throws IOException{
+		trackerRequest();
+		System.out.println("Tracker responded: HTTP/1.1 200 OK");
+		System.out.println("complete | downloaded | incomplete | interval | min interval");
+		System.out.println("------------------------------------------------------------");
+		System.out.print(announce.getComplete()+"          ");
+		System.out.print(announce.getDownload()+"            ");
+		System.out.print(announce.getIncomplete()+"           ");
+		System.out.print(announce.getInterval()+"           ");
+		System.out.print(announce.getMin_interval()+"\n");
+		System.out.println("------------------------------------------------------------");
+		System.out.println("Peer List :");
+		System.out.println("IP          | Port");
+		System.out.println("---------------------------");
+		for(int i=0; i<peers.size(); i++){
+			System.out.print(peers.get(i).ip+"    ");
+			System.out.println(peers.get(i).port);
+		}
+		System.out.println("...Tracker closed connection");
+	}
+	
+	public void Print_Trackerinfo(){
+		System.out.println("complete | downloaded | incomplete | interval | min interval");
+		System.out.println("------------------------------------------------------------");
+		System.out.print(announce.getComplete()+"          ");
+		System.out.print(announce.getDownload()+"            ");
+		System.out.print(announce.getIncomplete()+"           ");
+		System.out.print(announce.getInterval()+"           ");
+		System.out.print(announce.getMin_interval()+"\n");
+		System.out.println("------------------------------------------------------------");
+		System.out.println("Peer List (self included):");
+		System.out.println("IP          | Port");
+		System.out.println("---------------------------");
+//		System.out.println("127.0.0.1"+"    "+"9999");
+		for(int i=0; i<peers.size(); i++){
+			System.out.print(peers.get(i).ip+"    ");
+			System.out.println(peers.get(i).port);
+		}
+	}
 	
 	public void PrintStatus() {
 		System.out.println("----------------------------------");
@@ -350,7 +510,6 @@ public class URPeer {
 		System.out.println("Peers Connection Status\n----------------------------------");
 		System.out.println("Downloaded: "+status.download+"\nUploaded: "+status.upload+"\nLeft"+status.left+"\nMy bit field: "+status.bitfield());
 	}
-	
 	
 	
 

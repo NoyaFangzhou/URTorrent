@@ -28,7 +28,10 @@ public class URTorrent {
 	
 	private ArrayList<PeerStatus> statusList;//stores the status for each remote peer
 	
+	public static ArrayList<URPeerInfo> info = new ArrayList<URPeerInfo>();
+	
 	public static void main (String [] args) {
+//		info.add(new URPeerInfo(Macro.LOCALHOST, 6000));
 		System.out.println("-------------------------------------");
 		System.out.println("Metainfo File Name: " + args[0]);
 		System.out.println("Port Number: " + args[1]);
@@ -46,18 +49,26 @@ public class URTorrent {
 	 */
 	public static void launch(String metafile, String port) {
 		URPeer peer = new URPeer(port, metafile);
+//		peer.setPeers(info);
 		if(findSrc(metafile)) {
 			peer.setRole(Macro.SEEDER);
 		}
 		else {
 			peer.setRole(Macro.LEECHER);
 		}
-//		peer.trackerRequest();
+//		System.out.println("role: "+peer.getRole());
+		try {
+			peer.trackerRequest();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(0);
+		}
 		//Open the server thread to receive messages
 		URReceiverThread server = new URReceiverThread(Integer.parseInt(port), peer);
 		server.start();
 		
-		if(peer.getRole() == Macro.LEECHER) {
+		if((peer.getRole() == Macro.LEECHER) && peer.getPeers().size() > 1) {
 			//send the handshake for all known peers
 			peer.handshake();
 		}
@@ -77,11 +88,17 @@ public class URTorrent {
 			//update the information to be used later
 			//print the status line of the response 
 			case ANNOUNCE:
+				try {
+					peer.Print_Announce();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				break;
 			//prints the information contained in the latest tracker response
 			//the output is just part of the announce output, without status line
 			case TRACKERINFO:
-				peer.trackerRequest();
+				peer.Print_Trackerinfo();
 				break;
 			//prints the status of all current peer connections
 			//including the choked/interested states and up/download state
@@ -114,9 +131,11 @@ public class URTorrent {
 	 * @return
 	 */
 	public static boolean findSrc(String fileName) {
+		String srcfile = fileName.split(".torrent")[0];
+		System.out.println(srcfile);
 		boolean isSeeder = true;
-		File source = new File(fileName);    
-		if(!source.exists()) {
+		File source = new File(srcfile);    
+		if(source.exists()) {
 			isSeeder = false;
 		}    
 		return isSeeder;

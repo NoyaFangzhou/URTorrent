@@ -38,6 +38,9 @@ public class URPeerInfo {
 	 */
 	public URPeerInfo(String ip, int port) {
 		// TODO Auto-generated constructor stub
+		this.ip = ip;
+		this.port = port;
+		
 		this.ChokeFlag = true;
 		this.UnChokeFlag = false;
 		this.InterestFlag = false;
