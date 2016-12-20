@@ -33,6 +33,8 @@ import java.util.Map;
  * for a single-file torrent.
  * 
  * @author Robert Moore II
+ * 
+ * modified by Fangzhou Liu
  *
  */
 public class TorrentInfo
@@ -90,6 +92,17 @@ public class TorrentInfo
 	 * an explanation of what keys are available and how they map.
 	 */
 	public final Map<ByteBuffer,Object> info_map;
+	
+	
+	/**
+	 * The IP address of the tracker parsed from announce_url
+	 */
+	public final String tracker_ip;
+	
+	/**
+	 * The port number of the tracker parsed from announce_url
+	 */
+	public final int tracker_port;
 	
 	/**
 	 * The SHA-1 hash of the bencoded form of the info dictionary from the torrent metainfo file.
@@ -150,6 +163,8 @@ public class TorrentInfo
 			String url_string = new String(url_buff.array(), "ASCII");
 			URL announce_url = new URL(url_string);
 			this.announce_url = announce_url;
+			this.tracker_ip = parseIPFromURL(url_string);
+			this.tracker_port = parsePortFromURL(url_string);
 		}
 		catch(UnsupportedEncodingException uee)
 		{
@@ -167,6 +182,7 @@ public class TorrentInfo
 		if(info_map == null)
 			throw new BencodingException("Could not extract info dictionary from torrent metainfo dictionary.  Corrupt file?");
 		this.info_map = info_map;
+		
 		
 		// Try to generate the info hash value
 		try {
@@ -223,5 +239,48 @@ public class TorrentInfo
 			System.arraycopy(all_hashes_array,i*20,temp_buff,0,20);
 			this.piece_hashes[i] = ByteBuffer.wrap(temp_buff);
 		}
+	}
+	
+	/**
+	 * operate the urtorrent <metainfo> command
+	 * show the information about the metainfo file
+	 * 
+	 * Parse the information hide behind the metainfo file
+	 * show all key-value pairs
+	 * list all piece hash info 
+	 * @param fileName: the file name of the .torrent file
+	 * @param port: port number that the peer listen to
+	 * @param peerID: id of the current peer
+	 * @throws NoSuchAlgorithmException 
+	 */
+	public void TorrentInfoFileParser(String fileName, String id) throws NoSuchAlgorithmException {
+		//display the content
+		System.out.println("-------------------------------------");
+		System.out.println("- IP/port: "+this.tracker_ip+"/"+this.tracker_port);
+		System.out.println("- ID: "+URDataOperator.SEncode(id));
+		System.out.println("- metainfo file: "+fileName);
+		System.out.println("- info hash: "+URDataOperator.SEncode(new String(this.info_hash.array())));
+		System.out.println("- file name: "+this.file_name);
+		System.out.println("- piece length: "+this.piece_length);
+		System.out.println("- file size: "+this.file_length);
+		System.out.println("- announce: "+ this.announce_url);
+		System.out.println("- piece hashs: ");
+		for(int i = 0; i<this.piece_hashes.length; i++) {
+			System.out.println(i+ ": "+ URDataOperator.SEncode(new String(this.piece_hashes[i].array())));
+		}
+	}
+	
+	public static int parsePortFromURL(String announceurl) {
+		int tracker_port = 6969;
+//		System.out.println(announceurl.split(":")[2].split("/")[0]);
+		tracker_port = Integer.parseInt(announceurl.split(":")[2].split("/")[0]);
+		return tracker_port;
+	}
+	
+	public static String parseIPFromURL(String announceurl) {
+		String IP = "";
+//		System.out.println("!!!!!!!"+ announceurl.split(":")[1].split("//")[1]);
+		IP = announceurl.split(":")[1].split("//")[1];
+		return IP;
 	}
 }

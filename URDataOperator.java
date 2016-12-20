@@ -46,7 +46,7 @@ public class URDataOperator {
 		}
         MessageDigest mDigest = MessageDigest.getInstance(Macro.SHA1);
         byte[] result = mDigest.digest(plaintext.getBytes());
-        return toHexString(result);
+        return toHex(result);
 	}
 	
 	/**
@@ -179,5 +179,9 @@ public class URDataOperator {
 			sb.append('%').append(HEX_CHARS[hi]).append(HEX_CHARS[lo]);
 		}
 		return sb.toString();
+	}
+	
+	public static int byteToInteger(byte[] bytes) {
+		return (bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]);
 	}
 }

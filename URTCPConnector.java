@@ -189,15 +189,15 @@ public class URTCPConnector {
         btfsocket.close(); 
 	}
 	
-	public static void SendPieceData(String url, int port, byte[] data) throws IOException {
+	public static void SendHave(String url, int port, byte[] have) throws IOException {
 		Socket btfsocket = new Socket(url, port);  	
-		System.out.println(data+"\n");
+		System.out.println(have+"\n");
         //获取Socket的输出流，用来发送数据到服务端    
 		//Get the output stream for Socket
 		//Send bitfield to peer
 		
 		DataOutputStream out_stream = new DataOutputStream(btfsocket.getOutputStream()); 
-		out_stream.write(data);
+		out_stream.write(have);
         
         //获取Socket的输入流，用来接收从服务端发送过来的数据
         //Get the input stream for Socket

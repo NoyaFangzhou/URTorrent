@@ -89,6 +89,15 @@ public class URAnnounce {
 		return complete;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "URAnnounce [min_interval=" + min_interval + ", interval=" + interval + ", download=" + download
+				+ ", complete=" + complete + ", incomplete=" + incomplete + "]";
+	}
+
 	/**
 	 * @param complete the complete to set
 	 */
@@ -109,5 +118,7 @@ public class URAnnounce {
 	public void setIncomplete(int incomplete) {
 		this.incomplete = incomplete;
 	}
+	
+	
 	
 }

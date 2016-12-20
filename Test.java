@@ -2,8 +2,14 @@
  * 
  */
 package URTorrent;
-import java.io.IOException;
 import java.nio.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.net.*;
+import java.io.*;
+import URTorrent.URMessage.*;
 /**
  *
  * @File Test.java
@@ -18,18 +24,66 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-//		byte[] len = new byte[4];
-//		int a = 159;
-//		len = ByteBuffer.allocate(4).putInt(a).array();
-//		System.out.println(len.length);
-		URPeer peer = new URPeer("6881", "UR.mp3.torrent");
+		int port = 9998;
+		System.out.println("Server Open！....\n");
+		ServerSocket serv_sock;
 		try {
-			peer.trackerRequest();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			serv_sock = new ServerSocket(port);
+			Socket client_sock = null;
+			boolean run_state = true;
+			while(run_state) {
+				client_sock = serv_sock.accept(); 
+				
+				String remote_ip = client_sock.getInetAddress()+"";
+				int remote_port = client_sock.getPort();
+				System.out.println("Receive message from other peers!");
+				System.out.println("Peer IP: "+ remote_ip);
+				System.out.println("Peer port:" + remote_port);
+				DataInputStream in_stream = new DataInputStream(client_sock.getInputStream());
+				byte[] messagecontent = new byte[Macro.PIECE_SIZE];
+				int message_length = in_stream.read(messagecontent, 0, Macro.PIECE_SIZE); 
+				
+				//check message id
+				if(messagecontent[4] == 0) {
+					System.out.println("--Chock message--\n");
+				}
+				if(messagecontent[4] == 1) {
+					System.out.println("--UnChock message--\n");
+				}
+				if(messagecontent[4] == 2) {
+					System.out.println("--Interest message--\n");
+				}
+				if(messagecontent[4] == 3) {
+					System.out.println("--UnInterest message--\n");
+				}
+				if(messagecontent[4] == 4) {
+					System.out.println("--Have message--\n");
+					TimeUnit.SECONDS.sleep(1);
+				}
+				if(messagecontent[4] == 5) {
+					System.out.println("--BitField message--\n");
+					TimeUnit.SECONDS.sleep(1);
+				}
+				if(messagecontent[4] == 6) {
+					System.out.println("--Request message--\n");
+					TimeUnit.SECONDS.sleep(1);
+				}
+				if(messagecontent[4] == 7) {
+					System.out.println("--Piece message--\n");
+					TimeUnit.SECONDS.sleep(1);
+				}
+				else {
+					System.out.println("--Handshake message--\n");
+					TimeUnit.SECONDS.sleep(1);
+					break;
+				}
+				in_stream.close();
+	            client_sock.close();
+			}
+		} catch (NumberFormatException | IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 		}
-
 	}
 
 }

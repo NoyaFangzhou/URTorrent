@@ -3,6 +3,8 @@
  */
 package URTorrent;
 
+import java.util.ArrayList;
+
 /**
  *
  * @File URPeerInfo.java
@@ -16,10 +18,10 @@ public class URPeerInfo {
 	public int port;
 	
 	
-	public boolean ChokeFlag;
-	public boolean UnChokeFlag;
-	public boolean InterestFlag;
-	public boolean UninterestFlag;
+	public boolean AmChokingFlag;
+	public boolean AmInterestedFlag;
+	public boolean PeerChokingFlag;
+	public boolean PeerInterestedFlag;
 	
 	public boolean MsgChokeFlag;
 	public boolean MsgInterestFlag;
@@ -31,24 +33,32 @@ public class URPeerInfo {
 	
 	public int download;
 	public int upload;
+	public int left;
 	
 	public byte[] peerId;
+	
+	public ArrayList<URPeerInfo> remote_peers; //stores the status for each remote peer
+	
+	
+	
 	/**
-	 * 
+	 * Constructor
 	 */
-	public URPeerInfo(String ip, int port) {
+	public URPeerInfo(String ip, int port, int piece_num) {
 		// TODO Auto-generated constructor stub
 		this.ip = ip;
 		this.port = port;
 		
-		this.ChokeFlag = true;
-		this.UnChokeFlag = false;
-		this.InterestFlag = false;
-		this.UninterestFlag = false;
+		this.AmChokingFlag = true;
+		this.PeerChokingFlag = false;
+		this.AmInterestedFlag = false;
+		this.PeerInterestedFlag = false;
 		this.MsgChokeFlag = false;
 		this.MsgInterestFlag = false;
 		this.MsghandshakeFlag = false;
 		this.MsgbitfieldFlag = false;
+		
+		this.remote_peers = new ArrayList<URPeerInfo>(Macro.MAX_PEERS);
 		
 		this.download = 0;
 		this.upload = 0;
@@ -57,21 +67,25 @@ public class URPeerInfo {
 	public String toString() {
 		String header = "PeerInfo:\n";
 		String body = "Peer ID: "+this.peerId +"\nbitfield: "+this.bitfield
-				+"\nChokeFlag: "+ this.ChokeFlag + "\nUnChokeFlag: "+ this.UnChokeFlag
-				+"\nInterestFlag: "+ this.InterestFlag +"\nUnInterestFlag: "+this.UninterestFlag
+				+"\nAmChokingFlag: "+ this.AmChokingFlag + "\nUnPeerChokingFlag: "+ this.PeerChokingFlag
+				+"\nAmInterestedFlags: "+ this.AmInterestedFlag +"\nPeerInterestedFlag: "+this.PeerInterestedFlag
 				+"\nMsgChokeFlag: "+this.MsgChokeFlag+"\nMsgInterestFlag: "+this.MsgInterestFlag
 				+"\nMsghandshakeFlag: "+this.MsghandshakeFlag+"\nMsgbitfieldFlag: "+this.MsgbitfieldFlag
-				+"\ndownload: "+this.download +"\nupload: "+this.upload;
+				+"\ndownload: "+this.download +"\nupload: "+this.upload + "\nleft: " + this.left;
 		return header+body;
 	}
 	
-	public String bitfield() {
-		String btf = "";
-		for(int i = 0; i<this.bitfield.length; i++) {
-			btf += this.bitfield[i]+"";
+	/**
+	 * return all the remote peers info(ip address + port)
+	 * @return the String format representation of all remote peers
+	 */
+	public String showRemotePeers() {
+		String peers = "";
+		for(int i= 0; i<this.remote_peers.size(); i++) {
+			URPeerInfo remote = remote_peers.get(i);
+			peers +="Peer "+i+": ["+ remote.ip +" "+remote.port+"];\n";
 		}
-		return btf;
+		return peers;
 	}
-	
 
 }
